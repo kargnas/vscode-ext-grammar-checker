@@ -1,8 +1,33 @@
-out
-dist
-node_modules
+# Build outputs
+out/
+dist/
+
+# Dependencies
+node_modules/
+
+# VS Code test runner
 .vscode-test/
+
+# Package outputs
 *.vsix
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
+npm-debug.log*
+
+# Environment files (secrets)
 .env
+.env.*
+!.env.example
+!.env.ai-ready
+
+# AI Agent working directories
+.sisyphus/
+
+# IDE settings (user-specific)
+.vscode/settings.local.json
+.idea/
