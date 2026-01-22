@@ -4,7 +4,7 @@
  */
 
 import * as vscode from 'vscode';
-import { CorrectionItem, DiagnosticData } from './types';
+import { CorrectionItem } from './types';
 import { getUIMessage } from './prompts';
 
 // Custom diagnostic severity for our extension
@@ -92,7 +92,9 @@ export function getCorrectionForRange(
     range: vscode.Range
 ): CorrectionItem | undefined {
     const dataMap = diagnosticDataMap.get(documentUri);
-    if (!dataMap) return undefined;
+    if (!dataMap) {
+        return undefined;
+    }
     
     const key = getDiagnosticKey(range);
     return dataMap.get(key);
@@ -125,7 +127,7 @@ export class GrammarCodeActionProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         range: vscode.Range | vscode.Selection,
         context: vscode.CodeActionContext,
-        _token: vscode.CancellationToken
+        _: vscode.CancellationToken
     ): vscode.CodeAction[] | undefined {
         const actions: vscode.CodeAction[] = [];
 
@@ -193,7 +195,7 @@ export class GrammarHoverProvider implements vscode.HoverProvider {
     provideHover(
         document: vscode.TextDocument,
         position: vscode.Position,
-        _token: vscode.CancellationToken
+        _: vscode.CancellationToken
     ): vscode.Hover | undefined {
         const documentUri = document.uri.toString();
         const dataMap = diagnosticDataMap.get(documentUri);

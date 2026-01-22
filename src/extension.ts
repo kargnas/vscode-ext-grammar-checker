@@ -26,7 +26,7 @@ interface CorrectionContext {
 // Global state
 let diagnosticCollection: vscode.DiagnosticCollection;
 let statusBarItem: vscode.StatusBarItem;
-let currentCorrections: Map<string, CorrectionContext> = new Map();
+const currentCorrections: Map<string, CorrectionContext> = new Map();
 let hoverProviderRegistration: vscode.Disposable | undefined;
 let codeActionProviderRegistration: vscode.Disposable | undefined;
 

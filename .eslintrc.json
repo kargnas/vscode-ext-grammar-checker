@@ -21,10 +21,18 @@
             }
         ],
         "@typescript-eslint/semi": "warn",
+        "@typescript-eslint/no-unused-vars": [
+            "error",
+            {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
+            }
+        ],
         "curly": "warn",
         "eqeqeq": "warn",
         "no-throw-literal": "warn",
-        "semi": "off"
+        "semi": "off",
+        "no-unused-vars": "off"
     },
     "ignorePatterns": [
         "out",

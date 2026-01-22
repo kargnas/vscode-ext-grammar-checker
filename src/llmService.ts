@@ -179,7 +179,8 @@ export class LLMService {
             let searchStart = 0;
 
             // Try to find a non-overlapping match
-            while (true) {
+            let found = false;
+            while (!found) {
                 const index = originalText.indexOf(correction.original, searchStart);
                 if (index === -1) {
                     break;
@@ -192,6 +193,7 @@ export class LLMService {
 
                 if (!overlaps) {
                     startIndex = index;
+                    found = true;
                     break;
                 }
 
@@ -258,7 +260,9 @@ export class LLMService {
             
             // Try different window sizes
             for (let len = normalizedSearch.length - 2; len <= normalizedSearch.length + 5; len++) {
-                if (len > window.length) break;
+                if (len > window.length) {
+                    break;
+                }
                 
                 const candidate = window.slice(0, len);
                 const normalizedCandidate = candidate.replace(/\s+/g, ' ').trim();
