@@ -14,6 +14,11 @@
 | Build Tool | tsc (TypeScript Compiler) |
 | Linter | ESLint |
 
+## Tested VS Code
+- `code` (VS Code)
+- `antigravity` (Google Antigraity)
+- `cursor` (Cursor)
+
 ## Quick Commands
 
 ```bash

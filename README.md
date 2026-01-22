@@ -2,7 +2,7 @@
 
 > AI-powered grammar and spelling correction for Markdown and LaTeX files in VS Code.
 
-![Demo](https://raw.githubusercontent.com/zcyisiee/blog-images/main/科研/vscode_picgo_1765036241205.png)
+![Demo](https://raw.githubusercontent.com/kargnas/blog-images/main/科研/vscode_picgo_1765036241205.png)
 
 ## Features
 
@@ -18,12 +18,12 @@
 Search for "AI Grammar Corrector" in the Extensions view (`Ctrl+Shift+X`).
 
 ### From VSIX
-1. Download the `.vsix` file from [Releases](https://github.com/zcyisiee/grammar-corrector-extension/releases)
+1. Download the `.vsix` file from [Releases](https://github.com/kargnas/vscode-ext-grammar-checker/releases)
 2. In VS Code: `Ctrl+Shift+P` → `Install from VSIX...`
 
 ### Build from Source
 ```bash
-git clone https://github.com/zcyisiee/grammar-corrector-extension.git
+git clone https://github.com/kargnas/vscode-ext-grammar-checker.git
 cd grammar-corrector-extension
 npm install
 npm run package
