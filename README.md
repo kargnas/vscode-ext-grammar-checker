@@ -35,9 +35,9 @@ Open VS Code Settings and search for `AI Grammar Corrector`:
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| `apiUrl` | LLM API endpoint URL | OpenAI |
+| `apiUrl` | LLM API endpoint URL | OpenRouter |
 | `apiKey` | Your API key | - |
-| `model` | Model name | `gpt-4o-mini` |
+| `model` | Model name | `google/gemini-2.5-flash-lite` |
 | `targetLanguage` | Language for corrections | `English` |
 | `uiLanguage` | UI message language | `English` |
 | `enableSuggestions` | Show style suggestions | `true` |
@@ -46,9 +46,9 @@ Open VS Code Settings and search for `AI Grammar Corrector`:
 
 ```json
 {
-  "aiGrammarCorrector.apiUrl": "https://api.openai.com/v1/chat/completions",
+  "aiGrammarCorrector.apiUrl": "https://openrouter.ai/api/v1/chat/completions",
   "aiGrammarCorrector.apiKey": "sk-***",
-  "aiGrammarCorrector.model": "gpt-4o-mini",
+  "aiGrammarCorrector.model": "google/gemini-2.5-flash-lite",
   "aiGrammarCorrector.uiLanguage": "English"
 }
 ```

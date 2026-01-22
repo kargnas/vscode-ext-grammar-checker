@@ -2,8 +2,8 @@
   "name": "ai-grammar-corrector",
   "displayName": "AI Grammar Corrector",
   "description": "AI-powered grammar and spelling correction for Markdown and LaTeX files",
-  "version": "1.0.0",
-  "publisher": "zcyisiee",
+  "version": "1.0.3",
+  "publisher": "kargnas",
   "repository": "https://github.com/kargnas/vscode-ext-grammar-checker",
   "icon": "icon.jpg",
   "engines": {
@@ -23,13 +23,7 @@
     "latex"
   ],
   "activationEvents": [
-    "onLanguage:markdown",
-    "onLanguage:latex",
-    "onLanguage:tex",
-    "onCommand:aiGrammarCorrector.checkSelection",
-    "onCommand:aiGrammarCorrector.checkDocument",
-    "onCommand:aiGrammarCorrector.clearDiagnostics",
-    "onCommand:aiGrammarCorrector.openSettings"
+    "*"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -55,7 +49,7 @@
       "editor/context": [
         {
           "command": "aiGrammarCorrector.checkSelection",
-          "when": "editorHasSelection && resourceLangId =~ /markdown|latex|tex/",
+          "when": "editorHasSelection",
           "group": "1_modification"
         }
       ]
@@ -73,7 +67,7 @@
       "properties": {
         "aiGrammarCorrector.apiUrl": {
           "type": "string",
-          "default": "https://api.openai.com/v1/chat/completions",
+          "default": "https://openrouter.ai/api/v1/chat/completions",
           "description": "The API endpoint URL for the LLM service (OpenAI-compatible). Alias: aiGrammarCorrector.url"
         },
         "aiGrammarCorrector.url": {
@@ -88,7 +82,7 @@
         },
         "aiGrammarCorrector.model": {
           "type": "string",
-          "default": "gpt-4o-mini",
+          "default": "google/gemini-2.5-flash-lite",
           "description": "The model to use for grammar checking"
         },
         "aiGrammarCorrector.modelName": {

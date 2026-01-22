@@ -69,14 +69,22 @@ export class LLMService {
                 requestBody.response_format = { type: 'json_object' };
             }
 
+            const headers: Record<string, string> = {
+                'Authorization': `Bearer ${this.config.apiKey}`,
+                'Content-Type': 'application/json'
+            };
+
+            // Add OpenRouter-specific headers when using OpenRouter
+            if (this.config.apiUrl.includes('openrouter.ai')) {
+                headers['HTTP-Referer'] = 'https://kargn.as';
+                headers['X-Title'] = 'Sangrak';
+            }
+
             const response = await axios.post<LLMResponse>(
                 this.config.apiUrl,
                 requestBody,
                 {
-                    headers: {
-                        'Authorization': `Bearer ${this.config.apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers,
                     timeout: 60000 // 60 second timeout
                 }
             );

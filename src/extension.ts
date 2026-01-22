@@ -39,7 +39,7 @@ function getConfig(): ExtensionConfig {
     
     // Support flexible naming for model/apiUrl so users can set model_name/url aliases
     const modelName = config.get<string>('modelName') || config.get<string>('model_name');
-    const resolvedModel = modelName || config.get<string>('model') || kargnasConfig.get<string>('model') || 'gpt-4o-mini';
+    const resolvedModel = modelName || config.get<string>('model') || kargnasConfig.get<string>('model') || 'google/gemini-2.5-flash-lite';
 
     const apiUrlSetting = config.get<string>('apiUrl');
     const apiUrlAlias = config.get<string>('url');
@@ -48,7 +48,7 @@ function getConfig(): ExtensionConfig {
     const resolvedApiUrl = (apiUrlSetting && apiUrlSetting.trim())
         || (apiUrlAlias && apiUrlAlias.trim())
         || (kargnasEndpoint && kargnasEndpoint.trim())
-        || 'https://api.openai.com/v1/chat/completions';
+        || 'https://openrouter.ai/api/v1/chat/completions';
 
     const apiKey = config.get<string>('apiKey') || kargnasConfig.get<string>('apiKey') || '';
 
@@ -76,9 +76,7 @@ function registerProviders(context: vscode.ExtensionContext, config: ExtensionCo
 
     codeActionProviderRegistration = vscode.languages.registerCodeActionsProvider(
         [
-            { language: 'markdown', scheme: 'file' },
-            { language: 'latex', scheme: 'file' },
-            { language: 'tex', scheme: 'file' }
+            { scheme: 'file' }
         ],
         new GrammarCodeActionProvider(config.uiLanguage, config.showExplanations),
         {
@@ -88,9 +86,7 @@ function registerProviders(context: vscode.ExtensionContext, config: ExtensionCo
 
     hoverProviderRegistration = vscode.languages.registerHoverProvider(
         [
-            { language: 'markdown', scheme: 'file' },
-            { language: 'latex', scheme: 'file' },
-            { language: 'tex', scheme: 'file' }
+            { scheme: 'file' }
         ],
         new GrammarHoverProvider(config.uiLanguage, config.showExplanations)
     );
@@ -361,183 +357,191 @@ function rejectCorrection(uri: vscode.Uri, range: vscode.Range): void {
 export function activate(context: vscode.ExtensionContext): void {
     console.log('AI Grammar Corrector is now active');
 
-    // Create diagnostic collection
-    diagnosticCollection = vscode.languages.createDiagnosticCollection('aiGrammar');
-    context.subscriptions.push(diagnosticCollection);
+    try {
+        // Create diagnostic collection
+        diagnosticCollection = vscode.languages.createDiagnosticCollection('aiGrammar');
+        context.subscriptions.push(diagnosticCollection);
 
-    // Create status bar item
-    statusBarItem = vscode.window.createStatusBarItem(
-        vscode.StatusBarAlignment.Left,
-        100
-    );
-    context.subscriptions.push(statusBarItem);
+        // Create status bar item
+        statusBarItem = vscode.window.createStatusBarItem(
+            vscode.StatusBarAlignment.Left,
+            100
+        );
+        context.subscriptions.push(statusBarItem);
 
-    // Get initial config for providers
-    const config = getConfig();
-    registerProviders(context, config);
+        // Get initial config for providers
+        const config = getConfig();
+        registerProviders(context, config);
 
-    // Register commands
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            'aiGrammarCorrector.checkSelection',
-            checkSelection
-        )
-    );
+        // Register commands
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'aiGrammarCorrector.checkSelection',
+                checkSelection
+            )
+        );
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            'aiGrammarCorrector.checkDocument',
-            checkDocument
-        )
-    );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'aiGrammarCorrector.checkDocument',
+                checkDocument
+            )
+        );
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            'aiGrammarCorrector.clearDiagnostics',
-            clearDiagnostics
-        )
-    );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'aiGrammarCorrector.clearDiagnostics',
+                clearDiagnostics
+            )
+        );
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            'aiGrammarCorrector.rejectCorrection',
-            rejectCorrection
-        )
-    );
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            'aiGrammarCorrector.openSettings',
-            openExtensionSettings
-        )
-    );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'aiGrammarCorrector.rejectCorrection',
+                rejectCorrection
+            )
+        );
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                'aiGrammarCorrector.openSettings',
+                openExtensionSettings
+            )
+        );
 
-    // Listen for document changes to clear stale diagnostics
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeTextDocument(event => {
-            const documentUri = event.document.uri.toString();
-            const context = currentCorrections.get(documentUri);
-            if (!context) {
-                return;
-            }
+        // Listen for document changes to clear stale diagnostics
+        context.subscriptions.push(
+            vscode.workspace.onDidChangeTextDocument(event => {
+                const documentUri = event.document.uri.toString();
+                const context = currentCorrections.get(documentUri);
+                if (!context) {
+                    return;
+                }
 
-            let corrections = context.corrections;
-            let selectionOffset = context.selectionOffset;
-            let hasChanges = false;
+                let corrections = context.corrections;
+                let selectionOffset = context.selectionOffset;
+                let hasChanges = false;
 
-            for (const change of event.contentChanges) {
-                const changeStart = typeof change.rangeOffset === 'number'
-                    ? change.rangeOffset
-                    : event.document.offsetAt(change.range.start);
-                const changeEnd = changeStart + change.rangeLength;
-                const delta = change.text.length - change.rangeLength;
+                for (const change of event.contentChanges) {
+                    const changeStart = typeof change.rangeOffset === 'number'
+                        ? change.rangeOffset
+                        : event.document.offsetAt(change.range.start);
+                    const changeEnd = changeStart + change.rangeLength;
+                    const delta = change.text.length - change.rangeLength;
 
-                const updatedCorrections: CorrectionItem[] = [];
+                    const updatedCorrections: CorrectionItem[] = [];
 
-                for (const correction of corrections) {
-                    const absoluteStart = correction.absoluteStart ?? selectionOffset + correction.startIndex;
-                    const absoluteEnd = correction.absoluteEnd ?? selectionOffset + correction.endIndex;
+                    for (const correction of corrections) {
+                        const absoluteStart = correction.absoluteStart ?? selectionOffset + correction.startIndex;
+                        const absoluteEnd = correction.absoluteEnd ?? selectionOffset + correction.endIndex;
 
-                    // If the change overlaps this correction, drop it
-                    if (!(changeEnd <= absoluteStart || changeStart >= absoluteEnd)) {
-                        hasChanges = true;
-                        continue;
+                        // If the change overlaps this correction, drop it
+                        if (!(changeEnd <= absoluteStart || changeStart >= absoluteEnd)) {
+                            hasChanges = true;
+                            continue;
+                        }
+
+                        // Shift corrections that appear after the change
+                        if (absoluteStart >= changeEnd && delta !== 0) {
+                            const shiftedStart = absoluteStart + delta;
+                            const shiftedEnd = absoluteEnd + delta;
+                            updatedCorrections.push({
+                                ...correction,
+                                absoluteStart: shiftedStart,
+                                absoluteEnd: shiftedEnd,
+                                startIndex: correction.startIndex + delta,
+                                endIndex: correction.endIndex + delta
+                            });
+                            hasChanges = true;
+                        } else {
+                            updatedCorrections.push(correction);
+                        }
                     }
 
-                    // Shift corrections that appear after the change
-                    if (absoluteStart >= changeEnd && delta !== 0) {
-                        const shiftedStart = absoluteStart + delta;
-                        const shiftedEnd = absoluteEnd + delta;
-                        updatedCorrections.push({
-                            ...correction,
-                            absoluteStart: shiftedStart,
-                            absoluteEnd: shiftedEnd,
-                            startIndex: correction.startIndex + delta,
-                            endIndex: correction.endIndex + delta
-                        });
+                    corrections = updatedCorrections;
+
+                    // Keep track of selection offset so future calculations stay aligned
+                    if (changeStart < selectionOffset) {
+                        selectionOffset = Math.max(selectionOffset + delta, 0);
                         hasChanges = true;
-                    } else {
-                        updatedCorrections.push(correction);
                     }
                 }
 
-                corrections = updatedCorrections;
-
-                // Keep track of selection offset so future calculations stay aligned
-                if (changeStart < selectionOffset) {
-                    selectionOffset = Math.max(selectionOffset + delta, 0);
-                    hasChanges = true;
+                if (!hasChanges) {
+                    return;
                 }
-            }
 
-            if (!hasChanges) {
-                return;
-            }
-
-            if (corrections.length === 0) {
-                diagnosticCollection.delete(event.document.uri);
-                currentCorrections.delete(documentUri);
-                clearCorrectionData(documentUri);
-                
-                const editor = vscode.window.activeTextEditor;
-                if (editor && editor.document.uri.toString() === documentUri) {
-                    clearDecorations(editor);
+                if (corrections.length === 0) {
+                    diagnosticCollection.delete(event.document.uri);
+                    currentCorrections.delete(documentUri);
+                    clearCorrectionData(documentUri);
+                    
+                    const editor = vscode.window.activeTextEditor;
+                    if (editor && editor.document.uri.toString() === documentUri) {
+                        clearDecorations(editor);
+                    }
+                    return;
                 }
-                return;
-            }
 
-            const config = getConfig();
-            currentCorrections.set(documentUri, { corrections, selectionOffset });
+                const config = getConfig();
+                currentCorrections.set(documentUri, { corrections, selectionOffset });
 
-            createDiagnostics(
-                event.document,
-                corrections,
-                selectionOffset,
-                diagnosticCollection,
-                config.uiLanguage,
-                config.enableSuggestions
-            );
-
-            const editor = vscode.window.activeTextEditor;
-            if (editor && editor.document.uri.toString() === documentUri) {
-                applyDecorations(
-                    editor,
+                createDiagnostics(
+                    event.document,
                     corrections,
                     selectionOffset,
+                    diagnosticCollection,
+                    config.uiLanguage,
                     config.enableSuggestions
                 );
-            }
-        })
-    );
 
-    // Listen for editor changes to refresh decorations
-    context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (editor) {
-                const documentUri = editor.document.uri.toString();
-                const context = currentCorrections.get(documentUri);
-                if (context) {
-                    const config = getConfig();
+                const editor = vscode.window.activeTextEditor;
+                if (editor && editor.document.uri.toString() === documentUri) {
                     applyDecorations(
                         editor,
-                        context.corrections,
-                        context.selectionOffset,
+                        corrections,
+                        selectionOffset,
                         config.enableSuggestions
                     );
                 }
-            }
-        })
-    );
+            })
+        );
 
-    // Listen for configuration changes
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(event => {
-            if (event.affectsConfiguration('aiGrammarCorrector')) {
-                console.log('AI Grammar Corrector configuration changed');
-                const updatedConfig = getConfig();
-                registerProviders(context, updatedConfig);
-            }
-        })
-    );
+        // Listen for editor changes to refresh decorations
+        context.subscriptions.push(
+            vscode.window.onDidChangeActiveTextEditor(editor => {
+                if (editor) {
+                    const documentUri = editor.document.uri.toString();
+                    const context = currentCorrections.get(documentUri);
+                    if (context) {
+                        const config = getConfig();
+                        applyDecorations(
+                            editor,
+                            context.corrections,
+                            context.selectionOffset,
+                            config.enableSuggestions
+                        );
+                    }
+                }
+            })
+        );
+
+        // Listen for configuration changes
+        context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration(event => {
+                if (event.affectsConfiguration('aiGrammarCorrector')) {
+                    console.log('AI Grammar Corrector configuration changed');
+                    const updatedConfig = getConfig();
+                    registerProviders(context, updatedConfig);
+                }
+            })
+        );
+
+    } catch (error) {
+        console.error('Failed to activate AI Grammar Corrector:', error);
+        vscode.window.showErrorMessage(
+            `AI Grammar Corrector activation failed: ${error instanceof Error ? error.message : String(error)}`
+        );
+    }
 }
 
 /**

@@ -2,6 +2,9 @@
 
 > AI agents should read this file to understand project conventions, coding patterns, and development guidelines.
 
+## Instruction
+- After every task and changes, install the compiled extension to `antigravity` (not `code`). The version should be increased by 1 patch.
+
 ## Project Overview
 
 **AI Grammar Corrector** is a VS Code extension that provides AI-powered grammar and spelling correction for Markdown and LaTeX files. It communicates with LLM APIs (OpenAI-compatible) to analyze text and provide inline suggestions.
