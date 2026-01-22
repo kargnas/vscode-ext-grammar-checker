@@ -39,17 +39,22 @@ function getConfig(): ExtensionConfig {
     
     // Support flexible naming for model/apiUrl so users can set model_name/url aliases
     const modelName = config.get<string>('modelName') || config.get<string>('model_name');
-    const resolvedModel = modelName || config.get<string>('model') || 'gpt-4o-mini';
+    const resolvedModel = modelName || config.get<string>('model') || kargnasConfig.get<string>('model') || 'gpt-4o-mini';
 
     const apiUrlSetting = config.get<string>('apiUrl');
     const apiUrlAlias = config.get<string>('url');
+    const kargnasEndpoint = kargnasConfig.get<string>('endpoint');
+
     const resolvedApiUrl = (apiUrlSetting && apiUrlSetting.trim())
         || (apiUrlAlias && apiUrlAlias.trim())
+        || (kargnasEndpoint && kargnasEndpoint.trim())
         || 'https://api.openai.com/v1/chat/completions';
+
+    const apiKey = config.get<string>('apiKey') || kargnasConfig.get<string>('apiKey') || '';
 
     return {
         apiUrl: resolvedApiUrl,
-        apiKey: config.get('apiKey', ''),
+        apiKey: apiKey,
         model: resolvedModel,
         maxTokens: config.get('maxTokens', 2000),
         temperature: config.get('temperature', 0.3),
