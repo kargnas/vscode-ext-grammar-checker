@@ -158,6 +158,35 @@ Co-authored-by: opencode (oMo) <no-reply@opencode.ai>
 
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
 
+## VSCode Development Workflow
+
+### One-Click Debug (F5)
+Press `F5` to launch the Extension Development Host with the extension pre-compiled. The default configuration:
+1. Compiles TypeScript via `npm: watch` task
+2. Launches a new VS Code window with the extension loaded
+3. Attaches debugger for breakpoints in `src/*.ts`
+
+### Launch Configurations
+
+| Name | Purpose | Shortcut |
+|------|---------|----------|
+| 🚀 Run Extension | Launch extension in debug mode | F5 |
+| Extension Tests | Run test suite (when implemented) | - |
+
+### Tasks (Ctrl+Shift+B)
+
+| Task | Description |
+|------|-------------|
+| 🔧 Install Dependencies | `npm install` |
+| 🧹 Clean & Build | Remove `out/` and recompile |
+| 📦 Package VSIX | Create distributable `.vsix` file |
+| ✅ Lint & Compile | Run ESLint then compile (pre-commit check) |
+
+### Recommended Workflow
+1. **Start Watch Mode**: Run default build task (`Ctrl+Shift+B`) - auto-compiles on save
+2. **Debug**: Press `F5` to test changes in Extension Development Host
+3. **Before Commit**: Run "✅ Lint & Compile" task to validate
+
 ## Testing
 
 ### Manual Testing

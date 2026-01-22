@@ -2,49 +2,72 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "npm: watch",
             "type": "npm",
             "script": "watch",
             "problemMatcher": "$tsc-watch",
             "isBackground": true,
             "presentation": {
-                "reveal": "never"
+                "reveal": "never",
+                "panel": "dedicated"
             },
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },
-            "label": "npm: watch (default)"
+            }
         },
         {
+            "label": "npm: compile",
             "type": "npm",
             "script": "compile",
             "problemMatcher": "$tsc",
             "presentation": {
                 "reveal": "silent"
             },
-            "group": "build",
-            "label": "npm: compile"
+            "group": "build"
         },
         {
-            "type": "npm",
-            "script": "lint",
-            "problemMatcher": ["$eslint-stylish"],
+            "label": "🔧 Install Dependencies",
+            "type": "shell",
+            "command": "npm install",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🧹 Clean & Build",
+            "type": "shell",
+            "command": "rm -rf out && npm run compile",
             "presentation": {
                 "reveal": "always"
             },
-            "group": "test",
-            "label": "npm: lint"
+            "problemMatcher": "$tsc",
+            "group": "build"
         },
         {
+            "label": "📦 Package VSIX",
             "type": "npm",
             "script": "package",
-            "problemMatcher": [],
             "presentation": {
                 "reveal": "always"
             },
-            "group": "build",
-            "label": "npm: package",
+            "problemMatcher": [],
             "dependsOn": ["npm: compile"]
+        },
+        {
+            "label": "✅ Lint & Compile",
+            "type": "shell",
+            "command": "npm run lint && npm run compile",
+            "presentation": {
+                "reveal": "always"
+            },
+            "problemMatcher": [
+                "$eslint-stylish",
+                "$tsc"
+            ],
+            "group": "test"
         }
     ]
 }

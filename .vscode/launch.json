@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run Extension",
+            "name": "🚀 Run Extension",
             "type": "extensionHost",
             "request": "launch",
             "args": [
@@ -11,7 +11,30 @@
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
-            "preLaunchTask": "${defaultBuildTask}"
+            "preLaunchTask": "npm: watch",
+            "presentation": {
+                "group": "1_main",
+                "order": 1
+            }
+        },
+        {
+            "name": "─────────────────────────────────"
+        },
+        {
+            "name": "Run Extension (No Watch)",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
+            "preLaunchTask": "npm: compile",
+            "presentation": {
+                "group": "2_alternative",
+                "order": 1
+            }
         },
         {
             "name": "Extension Tests",
@@ -24,7 +47,11 @@
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
-            "preLaunchTask": "${defaultBuildTask}"
+            "preLaunchTask": "npm: compile",
+            "presentation": {
+                "group": "2_alternative",
+                "order": 2
+            }
         }
     ]
 }
