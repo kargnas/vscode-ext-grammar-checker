@@ -35,6 +35,7 @@ let codeActionProviderRegistration: vscode.Disposable | undefined;
  */
 function getConfig(): ExtensionConfig {
     const config = vscode.workspace.getConfiguration('aiGrammarCorrector');
+    const kargnasConfig = vscode.workspace.getConfiguration('kargnasCommitAI');
     
     // Support flexible naming for model/apiUrl so users can set model_name/url aliases
     const modelName = config.get<string>('modelName') || config.get<string>('model_name');
