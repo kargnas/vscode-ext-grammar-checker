@@ -2,12 +2,12 @@
 
 > AI-powered grammar and spelling correction for Markdown and LaTeX files in VS Code.
 
-![Demo](https://raw.githubusercontent.com/kargnas/blog-images/main/科研/vscode_picgo_1765036241205.png)
+![Demo](/assets/demo.png)
 
 ## Features
 
 - **Grammar & Spelling Check**: Detect errors and get AI-powered correction suggestions
-- **Multi-language Support**: Check text in 10 languages with localized UI
+- **Multi-language Support**: Check text in 10 language with localized UI
 - **Inline Suggestions**: Quick fixes appear directly in the editor
 - **Customizable Prompts**: Adjust AI behavior with custom system/user prompts
 - **Multiple LLM Providers**: Works with OpenAI, OpenRouter, Azure OpenAI, and local models
@@ -110,24 +110,3 @@ For AI-ready development environment setup, see [README.ai-ready.md](./README.ai
 ## License
 
 MIT License - see [LICENSE](./LICENSE)
-
----
-
-<details>
-<summary>中文说明</summary>
-
-### 功能
-- 抓语法/拼写，顺手给风格建议
-- 中英多语对话，提示词可自定义
-- 快捷键或命令面板一键跑完整篇
-
-### 配置
-1. 打开 VS Code Settings 搜索 `AI Grammar Corrector`
-2. 必填：`apiUrl`（或短名 `url`）+ `apiKey`
-3. 模型：`model` 默认 `gpt-4o-mini`
-
-### 用法
-- 选中文本后 `Cmd/Ctrl+Shift+G`
-- 命令面板搜 `AI Grammar: Check Entire Document`
-
-</details>

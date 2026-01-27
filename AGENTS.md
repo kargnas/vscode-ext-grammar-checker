@@ -207,11 +207,9 @@ headers['X-Title'] = 'Sangrak';
 
 ### Commit Message Format
 ```
-type: 간결한 설명 (Korean)
+type: Concise description
 
-- 상세 내용 (bullet points)
-
-Co-authored-by: opencode (oMo) <no-reply@opencode.ai>
+- Detailed content (bullet points)
 ```
 
 **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
