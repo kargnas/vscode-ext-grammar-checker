@@ -1,22 +1,30 @@
 name: Release
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to publish (e.g., 1.0.0)'
-        required: false
-        type: string
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
-  publish:
-    name: Publish to VS Code Marketplace
+  release:
+    name: Build and Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -24,26 +32,69 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile TypeScript
-        run: npm run compile
+      - name: Bump version
+        id: version
+        run: |
+          # Bump version using npm (no git tag)
+          NEW_VERSION=$(npm version ${{ inputs.version_type }} --no-git-tag-version)
+          # Remove 'v' prefix if present
+          NEW_VERSION=${NEW_VERSION#v}
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 New version: $NEW_VERSION"
+
+      - name: Commit version bump
+        run: |
+          git add package.json package-lock.json
+          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }}"
+          git push
 
       - name: Run ESLint
         run: npm run lint
 
+      - name: Compile TypeScript
+        run: npm run compile
+
       - name: Package Extension
         run: npm run package
 
+      - name: Get VSIX filename
+        id: vsix
+        run: |
+          VSIX_FILE=$(ls *.vsix)
+          echo "filename=$VSIX_FILE" >> $GITHUB_OUTPUT
+          echo "📦 VSIX file: $VSIX_FILE"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: v${{ steps.version.outputs.new_version }}
+          body: |
+            ## AI Grammar Corrector v${{ steps.version.outputs.new_version }}
+
+            ### Installation
+            1. Download the `.vsix` file below
+            2. In VS Code: `Ctrl+Shift+P` → `Install from VSIX...`
+            3. Select the downloaded file
+
+            ### Changes
+            See [commit history](https://github.com/${{ github.repository }}/commits/main) for details.
+          files: ${{ steps.vsix.outputs.filename }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+
       - name: Publish to VS Code Marketplace
-        if: env.VSCE_PAT != ''
+        if: ${{ secrets.VSCE_PAT != '' }}
         run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-
-      - name: Upload VSIX to Release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: '*.vsix'
+        continue-on-error: true
