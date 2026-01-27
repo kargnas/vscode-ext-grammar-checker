@@ -1,106 +1,151 @@
 # AGENTS.md - AI Grammar Corrector
 
-> AI agents should read this file to understand project conventions, coding patterns, and development guidelines.
+> AI agents should read this file to understand project conventions, coding patterns, and development guidelines. **Always update this file when you discover new patterns or add significant features.**
+
+## Quick Reference
+
+| Item | Value |
+|------|-------|
+| Type | VS Code Extension |
+| Language | TypeScript (strict mode) |
+| Package Manager | npm |
+| Build | `npm run compile` |
+| Lint | `npm run lint` |
+| Package | `npm run package` |
 
 ## Instruction
+
 - After every task and changes, install the compiled extension to `antigravity` (not `code`). The version should be increased by 1 patch.
+- Run `tree -I 'node_modules|out|.git' -L 3` to understand the project structure before making changes.
 
 ## Project Overview
 
 **AI Grammar Corrector** is a VS Code extension that provides AI-powered grammar and spelling correction for Markdown and LaTeX files. It communicates with LLM APIs (OpenAI-compatible) to analyze text and provide inline suggestions.
 
-| Attribute | Value |
-|-----------|-------|
-| Type | VS Code Extension |
-| Language | TypeScript |
-| Package Manager | npm |
-| Build Tool | tsc (TypeScript Compiler) |
-| Linter | ESLint |
+### Tech Stack
 
-## Tested VS Code
+| Component | Technology |
+|-----------|------------|
+| Language | TypeScript 5.3+ |
+| Runtime | Node.js 18+ (via VS Code) |
+| API Client | axios |
+| Linter | ESLint with @typescript-eslint |
+| Target | VS Code API 1.85+ |
+
+### Tested Editors
 - `code` (VS Code)
-- `antigravity` (Google Antigraity)
+- `antigravity` (Google Antigravity)
 - `cursor` (Cursor)
-
-## Quick Commands
-
-```bash
-npm install          # Install dependencies
-npm run compile      # Compile TypeScript
-npm run watch        # Watch mode for development
-npm run lint         # Run ESLint
-npm run package      # Create .vsix package
-```
 
 ## Project Structure
 
 ```
-src/
-├── extension.ts         # Main entry - activation, commands, event handlers
-├── llmService.ts        # LLM API communication, response parsing
-├── diagnosticsProvider.ts # VS Code diagnostics, code actions, hover
-├── prompts.ts           # System/user prompts, i18n messages
-└── types.ts             # TypeScript interfaces
+ai-grammar-corrector/
+├── src/                          # TypeScript source files
+│   ├── extension.ts              # Main entry - activation, commands, event handlers
+│   ├── llmService.ts             # LLM API communication, JSON parsing, fuzzy matching
+│   ├── diagnosticsProvider.ts    # VS Code diagnostics, CodeActionProvider, HoverProvider
+│   ├── prompts.ts                # System/user prompts, i18n messages (10 languages)
+│   └── types.ts                  # TypeScript interfaces
+├── out/                          # Compiled JavaScript (gitignored)
+├── .vscode/                      # VS Code workspace settings
+│   ├── launch.json               # Debug configurations (F5)
+│   ├── tasks.json                # Build tasks (Ctrl+Shift+B)
+│   └── settings.json             # Editor settings
+├── .github/workflows/            # GitHub Actions
+│   ├── ci.yml                    # Lint + Build on every push/PR
+│   └── release.yml               # Publish to VS Code Marketplace
+├── package.json                  # Extension manifest & npm scripts
+├── tsconfig.json                 # TypeScript strict mode config
+└── .eslintrc.json                # ESLint rules
 ```
 
-### Key Responsibilities
+### Key File Responsibilities
 
-| File | Purpose |
-|------|---------|
-| `extension.ts` | Extension lifecycle, command registration, document change tracking |
-| `llmService.ts` | API calls, JSON parsing, fuzzy text matching for corrections |
-| `diagnosticsProvider.ts` | Diagnostic creation, CodeActionProvider, HoverProvider, decorations |
-| `prompts.ts` | Multi-language prompts (10 languages), UI message translations |
-| `types.ts` | Shared TypeScript interfaces (CorrectionItem, LLMConfig, etc.) |
+| File | Responsibility |
+|------|----------------|
+| `extension.ts` | Extension lifecycle (`activate`/`deactivate`), command registration, document change tracking, correction state management |
+| `llmService.ts` | HTTP requests to LLM APIs, JSON response parsing, fuzzy text matching (`fuzzyFindPosition`), range refinement |
+| `diagnosticsProvider.ts` | Creates VS Code diagnostics, implements `CodeActionProvider` (quick fixes), `HoverProvider` (tooltips), text decorations |
+| `prompts.ts` | Multi-language system/user prompts, UI message translations, `getUIMessage()` helper |
+| `types.ts` | Shared TypeScript interfaces: `CorrectionItem`, `LLMConfig`, `ExtensionConfig`, etc. |
+
+## Development Workflow
+
+### Quick Commands
+```bash
+npm install          # Install dependencies
+npm run compile      # Compile TypeScript to out/
+npm run watch        # Watch mode - auto-recompile on save
+npm run lint         # Run ESLint checks
+npm run package      # Create .vsix package file
+```
+
+### Debug (F5)
+1. Press `F5` in VS Code to launch Extension Development Host
+2. The extension auto-compiles via `npm: watch` task
+3. Open any `.md` or `.tex` file to test
+
+### Recommended Workflow
+1. Run `npm run watch` in background (auto-compiles on save)
+2. Press `F5` to debug in Extension Development Host
+3. Before commit: `npm run lint && npm run compile`
 
 ## Coding Conventions
 
-### TypeScript
-
+### TypeScript Rules
 - **Strict mode enabled** (`"strict": true` in tsconfig.json)
 - Use `const` over `let` unless reassignment is necessary
-- Prefix unused parameters with underscore (`_token`)
+- Prefix unused parameters with underscore (`_token`, `_`)
 - Explicit return types for public functions
+- No `any` type without justification
 
 ### ESLint Rules
-
 - Semi-colons required (warn level)
 - Curly braces required for control statements
 - `eqeqeq` enforced (use `===` over `==`)
 - Unused variables with `_` prefix are allowed
 
-### Naming
+### Naming Conventions
+| Element | Convention | Example |
+|---------|------------|---------|
+| Files | camelCase | `llmService.ts` |
+| Classes | PascalCase | `LLMService`, `GrammarCodeActionProvider` |
+| Functions/Variables | camelCase | `checkGrammar`, `currentCorrections` |
+| Constants | UPPER_SNAKE_CASE | `DIAGNOSTIC_SOURCE` |
+| Interfaces | PascalCase | `CorrectionItem`, `LLMConfig` |
 
-- **Files**: camelCase (e.g., `llmService.ts`)
-- **Classes**: PascalCase (e.g., `LLMService`, `GrammarCodeActionProvider`)
-- **Functions/Variables**: camelCase
-- **Constants**: UPPER_SNAKE_CASE for module-level constants
+### Error Handling Pattern
+```typescript
+// Always return structured error responses
+async function checkGrammar(text: string): Promise<CorrectionResponse> {
+    if (!config.apiKey) {
+        return {
+            corrections: [],
+            success: false,
+            error: 'API key not configured'
+        };
+    }
+    // ... implementation
+}
+```
 
-### Error Handling
+### VS Code Extension Patterns
 
-- Always return structured error responses from async functions
-- Use `CorrectionResponse.success` flag pattern for API calls
-- Provide user-friendly error messages via `getUIMessage()`
-
-## VS Code Extension Patterns
-
-### Configuration Access
-
+**Configuration Access:**
 ```typescript
 const config = vscode.workspace.getConfiguration('aiGrammarCorrector');
 const apiKey = config.get<string>('apiKey', '');
 ```
 
-### Diagnostic Creation
-
+**Diagnostic Creation:**
 ```typescript
 const diagnostic = new vscode.Diagnostic(range, message, severity);
 diagnostic.source = 'AI Grammar Corrector';
 diagnosticCollection.set(document.uri, diagnostics);
 ```
 
-### Code Actions
-
+**Code Actions:**
 - Implement `vscode.CodeActionProvider`
 - Return `QuickFix` actions for corrections
 - Mark first suggestion as `isPreferred = true`
@@ -111,28 +156,26 @@ The extension supports 10 languages for UI messages:
 - English, Chinese, Spanish, French, German
 - Japanese, Korean, Portuguese, Russian, Italian
 
-Add translations in `prompts.ts`:
+**Adding new UI messages:**
 ```typescript
+// In prompts.ts
 export const UI_MESSAGES: Record<string, Record<string, string>> = {
-    'English': { checking: 'Checking grammar...', ... },
-    'Korean': { checking: '문법 검사 중...', ... },
-    ...
+    'English': { checking: 'Checking grammar...', newKey: 'New message' },
+    'Korean': { checking: '문법 검사 중...', newKey: '새 메시지' },
+    // ... all 10 languages
 };
 ```
 
 ## LLM Integration
 
 ### Supported Providers
-
 The extension works with any OpenAI-compatible API:
 - OpenAI (default)
-- OpenRouter
+- OpenRouter (with custom headers)
 - Azure OpenAI
 - Local models (Ollama, LM Studio)
 
-### Response Format
-
-LLM must return JSON:
+### Expected LLM Response Format
 ```json
 {
   "corrections": [
@@ -147,15 +190,22 @@ LLM must return JSON:
 }
 ```
 
+### OpenRouter Headers
+When using OpenRouter, the extension adds custom headers:
+```typescript
+headers['HTTP-Referer'] = 'https://kargn.as';
+headers['X-Title'] = 'Sangrak';
+```
+
 ## Before Committing
 
-1. **Run lint**: `npm run lint` - must pass with no errors
-2. **Run compile**: `npm run compile` - must succeed
-3. **Check git status**: Review all changes, remove unnecessary code
-4. **Commit message**: Use Korean, Conventional Commits format
+### Checklist
+1. `npm run lint` - must pass with no errors
+2. `npm run compile` - must succeed
+3. `git status` - review all changes, remove unnecessary code
+4. Test in Extension Development Host (F5)
 
 ### Commit Message Format
-
 ```
 type: 간결한 설명 (Korean)
 
@@ -164,70 +214,57 @@ type: 간결한 설명 (Korean)
 Co-authored-by: opencode (oMo) <no-reply@opencode.ai>
 ```
 
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`
 
-## VSCode Development Workflow
+## DO NOT
 
-### One-Click Debug (F5)
-Press `F5` to launch the Extension Development Host with the extension pre-compiled. The default configuration:
-1. Compiles TypeScript via `npm: watch` task
-2. Launches a new VS Code window with the extension loaded
-3. Attaches debugger for breakpoints in `src/*.ts`
+- Commit `.env` files with real API keys
+- Use `any` type without justification
+- Leave `console.log` debugging statements (except in `activate()`)
+- Modify user settings without explicit consent
+- Make blocking API calls without timeout
+- Create files unless absolutely necessary
 
-### Launch Configurations
+## MUST DO
 
-| Name | Purpose | Shortcut |
-|------|---------|----------|
-| 🚀 Run Extension | Launch extension in debug mode | F5 |
-| Extension Tests | Run test suite (when implemented) | - |
+- Update AGENTS.md when adding new patterns or conventions
+- Add i18n support for new UI messages (all 10 languages)
+- Handle API errors gracefully with user-friendly messages
+- Test with multiple LLM providers before release
+- Run `npm run lint && npm run compile` before every commit
+- Write human-readable code with clear variable names and comments
 
-### Tasks (Ctrl+Shift+B)
+## Code Quality
 
-| Task | Description |
-|------|-------------|
-| 🔧 Install Dependencies | `npm install` |
-| 🧹 Clean & Build | Remove `out/` and recompile |
-| 📦 Package VSIX | Create distributable `.vsix` file |
-| ✅ Lint & Compile | Run ESLint then compile (pre-commit check) |
+### Before You Commit
+1. Run `git status` and review all changes
+2. Ask yourself: "Is there any unnecessary code?"
+3. Run build to verify: `npm run lint && npm run compile`
+4. Test the extension with F5
 
-### Recommended Workflow
-1. **Start Watch Mode**: Run default build task (`Ctrl+Shift+B`) - auto-compiles on save
-2. **Debug**: Press `F5` to test changes in Extension Development Host
-3. **Before Commit**: Run "✅ Lint & Compile" task to validate
+### Writing Clean Code
+- Delete code, functions, or files if you're sure they're not needed (we have git)
+- Use descriptive variable names
+- Add comments explaining "why" not "what"
+- Keep functions focused and small
 
 ## Testing
 
 ### Manual Testing
-
-1. Press F5 in VS Code to launch Extension Development Host
+1. Press F5 to launch Extension Development Host
 2. Open a `.md` or `.tex` file
-3. Select text and run "AI Grammar: Check Selected Text"
+3. Select text and run "AI Grammar: Check Selected Text" (Cmd/Ctrl+Shift+G)
+4. Verify diagnostics appear and quick fixes work
 
 ### Automated Tests
-
-Test infrastructure exists in `launch.json` but test files are not implemented yet. Future tests should:
+Test infrastructure exists in `launch.json` but test files are not yet implemented. Future tests should:
 - Mock axios for API calls
 - Test `validateAndEnrichCorrections()` logic
 - Test fuzzy matching in `fuzzyFindPosition()`
-
-## DO NOT
-
-- ❌ Commit `.env` files with real API keys
-- ❌ Use `any` type without justification
-- ❌ Leave `console.log` debugging statements
-- ❌ Modify user settings without explicit consent
-- ❌ Make blocking API calls without timeout
-
-## MUST DO
-
-- ✅ Update AGENTS.md when adding new patterns or conventions
-- ✅ Add i18n support for new UI messages
-- ✅ Handle API errors gracefully with user-friendly messages
-- ✅ Test with multiple LLM providers before release
-- ✅ Run `npm run lint && npm run compile` before every commit
 
 ## Resources
 
 - [VS Code Extension API](https://code.visualstudio.com/api)
 - [VS Code Extension Samples](https://github.com/microsoft/vscode-extension-samples)
 - [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
+- [OpenRouter API Docs](https://openrouter.ai/docs)
