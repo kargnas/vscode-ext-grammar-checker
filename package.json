@@ -7,8 +7,7 @@
   "repository": "https://github.com/kargnas/vscode-ext-grammar-checker",
   "icon": "icon.jpg",
   "engines": {
-    "vscode": "^1.85.0",
-    "node": ">=24.22.1"
+    "vscode": "^1.85.0"
   },
   "categories": [
     "Other",
