@@ -9,6 +9,7 @@
 | Type | VS Code Extension |
 | Language | TypeScript (strict mode) |
 | Package Manager | npm |
+| Node | 24.22.1 (`.nvmrc`, CI) |
 | Build | `npm run compile` |
 | Lint | `npm run lint` |
 | Package | `npm run package` |
@@ -27,7 +28,7 @@
 | Component | Technology |
 |-----------|------------|
 | Language | TypeScript 5.3+ |
-| Runtime | Node.js 18+ (via VS Code) |
+| Runtime | Node.js 24.22.1 (toolchain). The extension still runs in the editor host. |
 | API Client | axios |
 | Linter | ESLint with @typescript-eslint |
 | Target | VS Code API 1.85+ |
